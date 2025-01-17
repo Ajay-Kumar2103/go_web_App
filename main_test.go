@@ -1,3 +1,5 @@
+// Test the main function
+
 package main
 
 import (
@@ -6,33 +8,76 @@ import (
 	"testing"
 )
 
-// Test to verify the redirect from root ("/") to "/courses"
-func TestRedirectRootToCourses(t *testing.T) {
-	req, err := http.NewRequest("GET", "/", nil)
+func TestMain(t *testing.T) {
+	// Test for the /home route
+	req, err := http.NewRequest("GET", "/home", nil)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	// Recorder to capture the response
+	// Use the test recorder to capture the response
 	rr := httptest.NewRecorder()
+	handler := http.HandlerFunc(homePage)
 
-	// Define the redirect handler to test
-	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		http.Redirect(w, r, "/courses", http.StatusFound)
-	})
-
-	// Execute the handler
+	// Serve the HTTP request to the handler
 	handler.ServeHTTP(rr, req)
 
-	// Verify the status code is HTTP 302 (Redirect)
-	if status := rr.Code; status != http.StatusFound {
-		t.Errorf("handler returned wrong status code: got %v want %v", status, http.StatusFound)
+	// Check if the status code is OK (200)
+	if status := rr.Code; status != http.StatusOK {
+		t.Errorf("handler returned wrong status code: got %v want %v",
+			status, http.StatusOK)
 	}
 
-	// Verify the Location header for the redirect
-	location := rr.Header().Get("Location")
-	if location != "/courses" {
-		t.Errorf("handler returned wrong redirect location: got %v want %v", location, "/courses")
+	// Check the Content-Type header
+	expected := "text/html; charset=utf-8"
+	if contentType := rr.Header().Get("Content-Type"); contentType != expected {
+		t.Errorf("handler returned unexpected content type: got %v want %v",
+			contentType, expected)
+	}
+
+	// Test for the /courses route
+	req, err = http.NewRequest("GET", "/courses", nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	rr = httptest.NewRecorder()
+	handler = http.HandlerFunc(coursePage)
+	handler.ServeHTTP(rr, req)
+
+	if status := rr.Code; status != http.StatusOK {
+		t.Errorf("handler returned wrong status code: got %v want %v",
+			status, http.StatusOK)
+	}
+
+	// Test for the /about route
+	req, err = http.NewRequest("GET", "/about", nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	rr = httptest.NewRecorder()
+	handler = http.HandlerFunc(aboutPage)
+	handler.ServeHTTP(rr, req)
+
+	if status := rr.Code; status != http.StatusOK {
+		t.Errorf("handler returned wrong status code: got %v want %v",
+			status, http.StatusOK)
+	}
+
+	// Test for the /contact route
+	req, err = http.NewRequest("GET", "/contact", nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	rr = httptest.NewRecorder()
+	handler = http.HandlerFunc(contactPage)
+	handler.ServeHTTP(rr, req)
+
+	if status := rr.Code; status != http.StatusOK {
+		t.Errorf("handler returned wrong status code: got %v want %v",
+			status, http.StatusOK)
 	}
 }
 
